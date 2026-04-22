@@ -15,16 +15,35 @@ export function VideoCall({ roomId, isInitiator, onEnd }: Props) {
   const [status, setStatus] = useState('Starting...')
 
   useEffect(() => {
-    let peer: Peer
-    let localStream: MediaStream
+    let peer: Peer | null = null
+    let localStream: MediaStream | null = null
+    let interval: any = null
+    let receiverInterval: any = null
+    let currentCall: any = null
+    let hasCalled = false
+
     const channel = supabase.channel(`room-${roomId}`)
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
       localStream = stream
       if (localVideoRef.current) localVideoRef.current.srcObject = stream
 
-      // Create peer with random ID
-      peer = new Peer()
+      // ✅ FIXED peer init (NO redeclaration bug)
+      peer = new Peer({
+        host: '0.peerjs.com',
+        port: 443,
+        secure: true,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            {
+              urls: 'turn:openrelay.metered.ca:80',
+              username: 'openrelayproject',
+              credential: 'openrelayproject',
+            },
+          ],
+        },
+      })
 
       peer.on('open', (myId) => {
         console.log('My ID:', myId)
@@ -33,72 +52,112 @@ export function VideoCall({ roomId, isInitiator, onEnd }: Props) {
         channel.subscribe((status) => {
           if (status !== 'SUBSCRIBED') return
 
-          if (isInitiator) {
-            // Caller: broadcast my ID and wait for receiver's ID
-            channel.send({
-              type: 'broadcast',
-              event: 'join',
-              payload: { id: myId, role: 'caller' },
-            })
+          // ✅ SINGLE listener (no stacking)
+          channel.on('broadcast', { event: 'join' }, ({ payload }) => {
+            console.log('Received:', payload, 'Me:', myId)
 
-            // When receiver joins, call them
-            channel.on('broadcast', { event: 'join' }, ({ payload }) => {
-              if (payload.role === 'receiver') {
-                console.log('Calling receiver:', payload.id)
-                setStatus('Calling...')
-                const call = peer.call(payload.id, stream)
-                call.on('stream', (remoteStream) => {
-                  if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream
-                  setStatus('Connected! ✅')
-                })
-                call.on('error', (err) => setStatus(`Call error: ${err}`))
-              }
-            })
-          } else {
-            // Receiver: listen for caller's ID first, then broadcast mine
-            channel.on('broadcast', { event: 'join' }, ({ payload }) => {
-              if (payload.role === 'caller') {
-                console.log('Caller found:', payload.id)
-                // Send my ID back
-                channel.send({
-                  type: 'broadcast',
-                  event: 'join',
-                  payload: { id: myId, role: 'receiver' },
-                })
-              }
-            })
+            if (payload.id === myId) return
 
-            // Also broadcast immediately in case caller is already waiting
-            setTimeout(() => {
+            // =====================
+            // CALLER
+            // =====================
+            if (isInitiator && payload.role === 'receiver' && !hasCalled) {
+              hasCalled = true
+              setStatus('Calling...')
+
+              currentCall = peer!.call(payload.id, stream)
+
+              currentCall.on('stream', (remoteStream: MediaStream) => {
+                if (remoteVideoRef.current) {
+                  remoteVideoRef.current.srcObject = remoteStream
+                }
+                setStatus('Connected! ✅')
+                clearInterval(interval)
+              })
+
+              currentCall.on('error', (err: any) => {
+                setStatus(`Call error`)
+                console.error(err)
+              })
+            }
+
+            // =====================
+            // RECEIVER
+            // =====================
+            if (!isInitiator && payload.role === 'caller') {
               channel.send({
                 type: 'broadcast',
                 event: 'join',
                 payload: { id: myId, role: 'receiver' },
               })
-            }, 1000)
+            }
+          })
 
-            // Answer incoming calls
-            peer.on('call', (call) => {
-              setStatus('Answering...')
-              call.answer(stream)
-              call.on('stream', (remoteStream) => {
-                if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream
-                setStatus('Connected! ✅')
+          // =====================
+          // RETRY SIGNALING
+          // =====================
+          if (isInitiator) {
+            interval = setInterval(() => {
+              channel.send({
+                type: 'broadcast',
+                event: 'join',
+                payload: { id: myId, role: 'caller' },
               })
-            })
+            }, 2000)
+          } else {
+            receiverInterval = setInterval(() => {
+              channel.send({
+                type: 'broadcast',
+                event: 'join',
+                payload: { id: myId, role: 'receiver' },
+              })
+            }, 2000)
           }
         })
       })
 
+      // =====================
+      // ANSWER CALL
+      // =====================
+      peer.on('call', (call) => {
+        currentCall = call
+        setStatus('Answering...')
+
+        call.answer(stream)
+
+        call.on('stream', (remoteStream: MediaStream) => {
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream
+          }
+          setStatus('Connected! ✅')
+          clearInterval(receiverInterval)
+        })
+      })
+
+      // =====================
+      // CONNECTION FAIL SAFE
+      // =====================
+      setTimeout(() => {
+        if (!remoteVideoRef.current?.srcObject) {
+          setStatus('Connection failed ❌')
+        }
+      }, 10000)
+
       peer.on('error', (err) => {
-        console.log('Peer error:', err.type, err)
-        setStatus(`Error: ${err.type}`)
+        console.log('Peer error:', err)
+        setStatus(`Error`)
       })
     })
 
     return () => {
+      clearInterval(interval)
+      clearInterval(receiverInterval)
+
+      currentCall?.close()
       peer?.destroy()
+
       localStream?.getTracks().forEach((t) => t.stop())
+
       supabase.removeChannel(channel)
     }
   }, [roomId, isInitiator])
@@ -106,6 +165,7 @@ export function VideoCall({ roomId, isInitiator, onEnd }: Props) {
   return (
     <div className="flex flex-col gap-4 items-center">
       <p className="text-sm text-muted-foreground">Status: {status}</p>
+
       <div className="flex gap-4 w-full">
         <div className="relative w-1/2">
           <video ref={localVideoRef} autoPlay muted className="w-full rounded-xl border" />
@@ -113,6 +173,7 @@ export function VideoCall({ roomId, isInitiator, onEnd }: Props) {
             You
           </span>
         </div>
+
         <div className="relative w-1/2">
           <video ref={remoteVideoRef} autoPlay className="w-full rounded-xl border" />
           <span className="absolute bottom-2 left-2 text-xs bg-black/50 text-white px-2 py-1 rounded">
@@ -120,6 +181,7 @@ export function VideoCall({ roomId, isInitiator, onEnd }: Props) {
           </span>
         </div>
       </div>
+
       <Button variant="destructive" onClick={onEnd}>
         End Call
       </Button>
