@@ -13,6 +13,23 @@ function VideoPage() {
   const [role, setRole] = useState<'caller' | 'receiver' | null>(null)
   const [inCall, setInCall] = useState(false)
 
+  // 🔥 generate random room id
+  const generateRoomId = () => {
+    const id = Math.random().toString(36).substring(2, 8)
+    setRoomId(id)
+  }
+
+  const handleStart = (selectedRole: 'caller' | 'receiver') => {
+    if (!roomId.trim()) return
+    setRole(selectedRole)
+    setInCall(true)
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(roomId)
+    alert('Room ID copied!')
+  }
+
   if (inCall && role) {
     return (
       <div className="p-6">
@@ -22,7 +39,6 @@ function VideoPage() {
           onEnd={() => {
             setInCall(false)
             setRole(null)
-            setRoomId('')
           }}
         />
       </div>
@@ -33,32 +49,41 @@ function VideoPage() {
     <div className="flex flex-col gap-6 items-center justify-center h-full p-6">
       <h1 className="text-2xl font-bold">Video Call</h1>
 
-      <Input
-        placeholder="Enter Room ID (e.g. gargi_anupam)"
-        value={roomId}
-        onChange={(e) => setRoomId(e.target.value)}
-        className="max-w-sm"
-      />
+      <div className="flex gap-2">
+        <Input
+          placeholder="Enter Room ID"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          className="max-w-sm"
+        />
+
+        <Button variant="outline" onClick={generateRoomId}>
+          Generate
+        </Button>
+      </div>
+
+      {roomId && (
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={handleCopy}>
+            Copy Room ID
+          </Button>
+        </div>
+      )}
 
       <div className="flex gap-4">
         <Button
           disabled={!roomId}
-          onClick={() => {
-            setRole('caller')
-            setInCall(true)
-          }}
+          onClick={() => handleStart('caller')}
         >
-          Start Call (Caller)
+          Start Call
         </Button>
+
         <Button
           variant="outline"
           disabled={!roomId}
-          onClick={() => {
-            setRole('receiver')
-            setInCall(true)
-          }}
+          onClick={() => handleStart('receiver')}
         >
-          Join Call (Receiver)
+          Join Call
         </Button>
       </div>
     </div>
