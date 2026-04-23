@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Sparkles, GraduationCap, Coins, Bot, ArrowRight, Globe2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import Chatbot from "../components/Chatbot";
+
 const Globe = lazy(() => import("@/components/three/Globe"));
 
 export const Route = createFileRoute("/")({
@@ -358,40 +360,47 @@ function Landing() {
         </motion.div>
 
         {/* GRID */}
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {[
-            { name: "Web Development", icon: Globe2 },
-            { name: "UI/UX Design", icon: Sparkles },
-            { name: "English Speaking", icon: GraduationCap },
-            { name: "DSA & Coding", icon: Bot },
-            { name: "Stock Trading", icon: Coins },
-            { name: "Fitness Training", icon: Sparkles },
-            { name: "Video Editing", icon: Globe2 },
-            { name: "Interview Prep", icon: GraduationCap },
-          ].map((skill, i) => (
-            <motion.div
-              key={skill.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              viewport={{ once: true }}
-              className="group rounded-2xl border bg-card/60 p-5 backdrop-blur transition hover:shadow-glow cursor-pointer"
-            >
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
-                <skill.icon className="h-5 w-5" />
-              </div>
+{/* GRID */}
+<div className="mt-14 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+  {[
+    { name: "Web Development", icon: Globe2 },
+    { name: "UI/UX Design", icon: Sparkles },
+    { name: "English Speaking", icon: GraduationCap },
+    { name: "DSA & Coding", icon: Bot },
+    { name: "Stock Trading", icon: Coins },
+    { name: "Fitness Training", icon: Sparkles },
+    { name: "Video Editing", icon: Globe2 },
+    { name: "Interview Prep", icon: GraduationCap },
+  ].map((skill, i) => (
 
-              <h3 className="text-sm font-semibold">{skill.name}</h3>
-
-              <p className="mt-1 text-xs text-muted-foreground">Learn & teach</p>
-
-              {/* Hover Arrow */}
-              <div className="mt-3 text-xs font-medium text-primary opacity-0 transition group-hover:opacity-100">
-                Explore →
-              </div>
-            </motion.div>
-          ))}
+    <Link
+      key={skill.name}
+      to="/skill/$name"
+      params={{ name: skill.name }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: i * 0.05 }}
+        viewport={{ once: true }}
+        className="group rounded-2xl border bg-card/60 p-5 backdrop-blur transition hover:shadow-glow cursor-pointer"
+      >
+        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
+          <skill.icon className="h-5 w-5" />
         </div>
+
+        <h3 className="text-sm font-semibold">{skill.name}</h3>
+
+        <p className="mt-1 text-xs text-muted-foreground">Learn & teach</p>
+
+        <div className="mt-3 text-xs font-medium text-primary opacity-0 transition group-hover:opacity-100">
+          Explore →
+        </div>
+      </motion.div>
+    </Link>
+
+  ))}
+</div>
       </section>
 
       <footer className="border-t py-8 text-center text-xs text-muted-foreground">
