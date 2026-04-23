@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Sparkles, GraduationCap, Coins, Bot, ArrowRight, Globe2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import Chatbot from "../components/Chatbot";
 
 const Globe = lazy(() => import("@/components/three/Globe"));
 
@@ -360,52 +359,94 @@ function Landing() {
         </motion.div>
 
         {/* GRID */}
-{/* GRID */}
-<div className="mt-14 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-  {[
-    { name: "Web Development", icon: Globe2 },
-    { name: "UI/UX Design", icon: Sparkles },
-    { name: "English Speaking", icon: GraduationCap },
-    { name: "DSA & Coding", icon: Bot },
-    { name: "Stock Trading", icon: Coins },
-    { name: "Fitness Training", icon: Sparkles },
-    { name: "Video Editing", icon: Globe2 },
-    { name: "Interview Prep", icon: GraduationCap },
-  ].map((skill, i) => (
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {[
+            { name: "Web Development", icon: Globe2 },
+            { name: "UI/UX Design", icon: Sparkles },
+            { name: "English Speaking", icon: GraduationCap },
+            { name: "DSA & Coding", icon: Bot },
+            { name: "Stock Trading", icon: Coins },
+            { name: "Fitness Training", icon: Sparkles },
+            { name: "Video Editing", icon: Globe2 },
+            { name: "Interview Prep", icon: GraduationCap },
+          ].map((skill, i) => (
+            <motion.div
+              key={skill.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              viewport={{ once: true }}
+              className="group rounded-2xl border bg-card/60 p-5 backdrop-blur transition hover:shadow-glow cursor-pointer"
+            >
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
+                <skill.icon className="h-5 w-5" />
+              </div>
 
-    <Link
-      key={skill.name}
-      to="/skill/$name"
-      params={{ name: skill.name }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ delay: i * 0.05 }}
-        viewport={{ once: true }}
-        className="group rounded-2xl border bg-card/60 p-5 backdrop-blur transition hover:shadow-glow cursor-pointer"
-      >
-        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
-          <skill.icon className="h-5 w-5" />
+              <h3 className="text-sm font-semibold">{skill.name}</h3>
+
+              <p className="mt-1 text-xs text-muted-foreground">Learn & teach</p>
+
+              {/* Hover Arrow */}
+              <div className="mt-3 text-xs font-medium text-primary opacity-0 transition group-hover:opacity-100">
+                Explore →
+              </div>
+            </motion.div>
+          ))}
         </div>
+      </section>
+      
+      {/* ================= TEAM SECTION ================= */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          👨‍💻 Meet the Developers
+        </h2>
 
-        <h3 className="text-sm font-semibold">{skill.name}</h3>
-
-        <p className="mt-1 text-xs text-muted-foreground">Learn & teach</p>
-
-        <div className="mt-3 text-xs font-medium text-primary opacity-0 transition group-hover:opacity-100">
-          Explore →
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            {
+              name: "Anupam Yadav",
+              role: "Full Stack Developer & DevOps Engineer",
+              img: "https://media.licdn.com/dms/image/v2/D5603AQG7Iheipy2BMQ/profile-displayphoto-crop_800_800/B56ZgtH_yBHkAI-/0/1753103729975?e=1778716800&v=beta&t=rPPDwMRyVZRDWoALaq0p_AI68wrIwnbHrLkbvOXqPhk",
+            },
+            {
+              name: "Gargi Soni",
+              role: "Web RTC Expert & Backend Developer",
+              img: "https://avatars.githubusercontent.com/u/209323421?v=4",
+            },
+            {
+              name: "Ayushi",
+              role: "UI/UX Designer & Frontend Developer",
+              img: "https://avatars.githubusercontent.com/u/195586771?v=4",
+            },
+            {
+              name: "Prakhar Agrawal",
+              role: "AI Integration Specialist",
+              img: "https://avatars.githubusercontent.com/u/207049815?v=4",
+            },
+          ].map((dev, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -8, scale: 1.05 }}
+              className="text-center p-6 rounded-2xl border bg-card shadow-md"
+            >
+              <img
+                src={dev.img}
+                alt={dev.name}
+                className="w-20 h-20 mx-auto rounded-full mb-4"
+              />
+              <h3 className="font-bold">{dev.name}</h3>
+              <p className="text-sm text-muted-foreground">{dev.role}</p>
+            </motion.div>
+          ))}
         </div>
-      </motion.div>
-    </Link>
-
-  ))}
-</div>
       </section>
 
       <footer className="border-t py-8 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} SkillSwapAI · Built for learners and teachers everywhere.
       </footer>
     </div>
+
+    
+    
   );
 }
