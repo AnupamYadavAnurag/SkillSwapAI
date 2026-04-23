@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useApp } from "@/lib/store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
   GraduationCap,
@@ -29,26 +30,69 @@ const NAV = [
   { to: "/ai", label: "AI Chatbot", icon: Bot },
   { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/payments", label: "Payments", icon: CreditCard },
+  { to: "/video", label: "Video Call", icon: Users },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
 
 export default function AppShell() {
-  const { isAuthed, user, coins, theme, toggleTheme, logout, setTheme } = useApp();
+  const { coins, theme, toggleTheme, setTheme } = useApp();
   const nav = useNavigate();
   const loc = useLocation();
+  const [authUser, setAuthUser] = useState<{ email: string; name: string } | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
   useEffect(() => {
-    if (!isAuthed) nav({ to: "/auth" });
-  }, [isAuthed, nav]);
-
-  // ensure consistent hydration of theme on first paint
-  useEffect(() => {
     setTheme(theme);
   }, []); // eslint-disable-line
+
+  // Check real Supabase session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data.session
+      if (!session) {
+        nav({ to: "/auth" })
+      } else {
+        setAuthUser({
+          email: session.user.email ?? "",
+          name: session.user.user_metadata?.full_name ?? session.user.email ?? "User",
+        })
+      }
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        nav({ to: "/auth" })
+      } else {
+        setAuthUser({
+          email: session.user.email ?? "",
+          name: session.user.user_metadata?.full_name ?? session.user.email ?? "User",
+        })
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [nav])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    nav({ to: "/auth" })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground text-sm">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!authUser) return null
 
   return (
     <div className="flex min-h-screen w-full">
@@ -84,14 +128,13 @@ export default function AppShell() {
         <div className="mt-4 rounded-2xl border bg-card p-3">
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>{user.name[0]}</AvatarFallback>
+              <AvatarFallback>{authUser.name[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">{user.name}</div>
-              <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+              <div className="truncate text-sm font-semibold">{authUser.name}</div>
+              <div className="truncate text-xs text-muted-foreground">{authUser.email}</div>
             </div>
-            <Button size="icon" variant="ghost" onClick={logout} aria-label="Log out">
+            <Button size="icon" variant="ghost" onClick={handleLogout} aria-label="Log out">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -125,7 +168,6 @@ export default function AppShell() {
           <Outlet />
         </main>
 
-        {/* Mobile bottom nav */}
         <nav className="sticky bottom-0 z-30 grid grid-cols-5 border-t bg-background/90 backdrop-blur md:hidden">
           {NAV.slice(0, 5).map((n) => {
             const active = loc.pathname.startsWith(n.to);
