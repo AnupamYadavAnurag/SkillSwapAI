@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SkillNameRouteImport } from './routes/skill.$name'
 import { Route as ApiAiChatRouteImport } from './routes/api.ai-chat'
 import { Route as AppWalletRouteImport } from './routes/_app.wallet'
 import { Route as AppVideoRouteImport } from './routes/_app.video'
@@ -36,6 +37,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkillNameRoute = SkillNameRouteImport.update({
+  id: '/skill/$name',
+  path: '/skill/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiChatRoute = ApiAiChatRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/video': typeof AppVideoRoute
   '/wallet': typeof AppWalletRoute
   '/api/ai-chat': typeof ApiAiChatRoute
+  '/skill/$name': typeof SkillNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/video': typeof AppVideoRoute
   '/wallet': typeof AppWalletRoute
   '/api/ai-chat': typeof ApiAiChatRoute
+  '/skill/$name': typeof SkillNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_app/video': typeof AppVideoRoute
   '/_app/wallet': typeof AppWalletRoute
   '/api/ai-chat': typeof ApiAiChatRoute
+  '/skill/$name': typeof SkillNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/video'
     | '/wallet'
     | '/api/ai-chat'
+    | '/skill/$name'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/video'
     | '/wallet'
     | '/api/ai-chat'
+    | '/skill/$name'
   id:
     | '__root__'
     | '/'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/_app/video'
     | '/_app/wallet'
     | '/api/ai-chat'
+    | '/skill/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -195,6 +207,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
+  SkillNameRoute: typeof SkillNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skill/$name': {
+      id: '/skill/$name'
+      path: '/skill/$name'
+      fullPath: '/skill/$name'
+      preLoaderRoute: typeof SkillNameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai-chat': {
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiAiChatRoute: ApiAiChatRoute,
+  SkillNameRoute: SkillNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
