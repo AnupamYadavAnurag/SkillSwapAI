@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { useApp } from "@/lib/store";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/learn")({
   component: LearnPage,
@@ -23,7 +24,9 @@ function LearnPage() {
   const [minRating, setMinRating] = useState(0);
   const [maxPrice, setMaxPrice] = useState(100);
   const [q, setQ] = useState("");
+  const [bookedTeacher, setBookedTeacher] = useState<string | null>(null);
   const { spendCoins, bumpProgress } = useApp();
+  const nav = useNavigate();
 
   const filtered = TEACHERS.filter(
     (t) =>
@@ -33,10 +36,11 @@ function LearnPage() {
       (q === "" || t.name.toLowerCase().includes(q.toLowerCase()) || t.skill.toLowerCase().includes(q.toLowerCase())),
   );
 
-  const book = (price: number, name: string) => {
+  const book = (price: number, name: string, id: string) => {
     if (spendCoins(price, `Booked session with ${name}`)) {
       bumpProgress(8);
       toast.success(`Booked with ${name}! −${price} coins`);
+      setBookedTeacher(id);
     } else {
       toast.error("Not enough coins. Top up your wallet.");
     }
@@ -101,7 +105,23 @@ function LearnPage() {
                   <Coins className="h-4 w-4 text-coin" /> {t.price}
                   <span className="text-xs font-normal text-muted-foreground">/session</span>
                 </div>
-                <Button size="sm" onClick={() => book(t.price, t.name)} className="bg-gradient-primary text-primary-foreground">Book</Button>
+                {bookedTeacher === t.id ? (
+                  <Button
+                    size="sm"
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                    onClick={() => nav({ to: "/video", search: { room: `session-${t.id}`, role: "receiver" } })}
+                  >
+                    Join Call 🎥
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => book(t.price, t.name, t.id)}
+                    className="bg-gradient-primary text-primary-foreground"
+                  >
+                    Book
+                  </Button>
+                )}
               </div>
             </Card>
           </motion.div>
