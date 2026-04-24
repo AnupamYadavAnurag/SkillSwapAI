@@ -1,3 +1,4 @@
+<img width="1183" height="801" alt="Screenshot 2026-04-24 123811" src="https://github.com/user-attachments/assets/82f40580-d08a-4d59-b4a2-70f3bd144598" />
 # 🚀 SkillSwap AI  
 ### *Swap Skills. Grow Together.*
 
