@@ -5,30 +5,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export const Route = createFileRoute('/_app/video')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    room: (search.room as string) || '',
+    role: (search.role as 'caller' | 'receiver') || '',
+  }),
   component: VideoPage,
 })
 
 function VideoPage() {
-  const [roomId, setRoomId] = useState('')
-  const [role, setRole] = useState<'caller' | 'receiver' | null>(null)
-  const [inCall, setInCall] = useState(false)
-
-  // 🔥 generate random room id
-  const generateRoomId = () => {
-    const id = Math.random().toString(36).substring(2, 8)
-    setRoomId(id)
-  }
-
-  const handleStart = (selectedRole: 'caller' | 'receiver') => {
-    if (!roomId.trim()) return
-    setRole(selectedRole)
-    setInCall(true)
-  }
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(roomId)
-    alert('Room ID copied!')
-  }
+  const { room, role: urlRole } = Route.useSearch()
+  const [roomId, setRoomId] = useState(room || '')
+  const [role, setRole] = useState<'caller' | 'receiver' | null>(urlRole || null)
+  const [inCall, setInCall] = useState(!!(room && urlRole))
 
   if (inCall && role) {
     return (
@@ -39,6 +27,7 @@ function VideoPage() {
           onEnd={() => {
             setInCall(false)
             setRole(null)
+            setRoomId('')
           }}
         />
       </div>
@@ -49,41 +38,26 @@ function VideoPage() {
     <div className="flex flex-col gap-6 items-center justify-center h-full p-6">
       <h1 className="text-2xl font-bold">Video Call</h1>
 
-      <div className="flex gap-2">
-        <Input
-          placeholder="Enter Room ID"
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          className="max-w-sm"
-        />
-
-        <Button variant="outline" onClick={generateRoomId}>
-          Generate
-        </Button>
-      </div>
-
-      {roomId && (
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={handleCopy}>
-            Copy Room ID
-          </Button>
-        </div>
-      )}
+      <Input
+        placeholder="Enter Room ID (e.g. gargi_anupam)"
+        value={roomId}
+        onChange={(e) => setRoomId(e.target.value)}
+        className="max-w-sm"
+      />
 
       <div className="flex gap-4">
         <Button
           disabled={!roomId}
-          onClick={() => handleStart('caller')}
+          onClick={() => { setRole('caller'); setInCall(true) }}
         >
-          Start Call
+          Start Call (Caller)
         </Button>
-
         <Button
           variant="outline"
           disabled={!roomId}
-          onClick={() => handleStart('receiver')}
+          onClick={() => { setRole('receiver'); setInCall(true) }}
         >
-          Join Call
+          Join Call (Receiver)
         </Button>
       </div>
     </div>
