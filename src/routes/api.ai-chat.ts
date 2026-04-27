@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/ai-chat")({
           const { messages } = await request.json();
           const apiKey = process.env.LOVABLE_API_KEY;
           if (!apiKey) {
-            return new Response(JSON.stringify({ error: "LOVABLE_API_KEY missing" }), {
+            return new Response(JSON.stringify({ error: "KEY missing" }), {
               status: 500,
               headers: { "Content-Type": "application/json" },
             });

@@ -104,13 +104,13 @@ function HeroVisual() {
     style={{ background: "linear-gradient(135deg,#7c3aed,#db2777)" }}
   >
     <img
-      src="https://media.licdn.com/dms/image/v2/D5603AQG7Iheipy2BMQ/profile-displayphoto-crop_800_800/B56ZgtH_yBHkAI-/0/1753103729975?e=1778716800&v=beta&t=rPPDwMRyVZRDWoALaq0p_AI68wrIwnbHrLkbvOXqPhk"
+      src="https://media.licdn.com/dms/image/v2/D4D03AQFtxuFHuYpBgQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1695936356115?e=1778716800&v=beta&t=dr4-ludRIkaH9Y64bn4j6AU_NZPjDC8DLfbOorkGuSM"
       alt="avatar"
       className="w-full h-full object-cover"
     />
   </div>
           <div>
-            <div className="text-sm font-semibold text-white">Anupam Yadav</div>
+            <div className="text-sm font-semibold text-white">Shikhar Prakash</div>
             <div className="text-xs text-purple-300 flex items-center gap-1">
               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> 4.9 · Top Teacher
             </div>
